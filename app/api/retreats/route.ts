@@ -22,7 +22,10 @@ const RetreatSchema = z.object({
 
 export async function GET() {
   const retreats = await prisma.retreat.findMany({
-    include: { retreatDates: true },
+    include: {
+      retreatDates: true,
+      roomTypes: true,   // ⭐ ADD THIS
+    },
   });
 
   return NextResponse.json(retreats);

@@ -28,8 +28,7 @@ interface RoomType {
   id: string
   name: string
   maxGuests: number
-  pricePerNight: number
-  durationDays: number
+  packagePrice: number
 }
 
 export default function RetreatPage() {
@@ -108,15 +107,15 @@ export default function RetreatPage() {
   }, [selectedRetreat, retreats])
 
   useEffect(() => {
-    if (selectedRetreatData && selectedRoom && discount >= 0) {
+    if (selectedRoom && discount >= 0) {
       const selectedRoomData = rooms.find((r) => r.id === selectedRoom)
-      let price = selectedRoomData?.pricePerNight || selectedRetreatData.basePrice
+      let price = selectedRoomData?.packagePrice || 0
       if (discount > 0) {
         price = price * (1 - discount / 100)
       }
       setTotalPrice(Math.round(price * 100) / 100)
     }
-  }, [selectedRetreatData, selectedRoom, discount, rooms])
+  }, [selectedRoom, discount, rooms])
 
   const handleValidatePromo = async () => {
     if (!promoCode.trim()) return
@@ -192,8 +191,8 @@ export default function RetreatPage() {
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
         <Card className="p-8 border-0 shadow-md">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Choose Your Retreat</h1>
-            <p className="mt-2 text-gray-600">Select dates and accommodation</p>
+            <h1 className="text-3xl font-bold text-gray-900">Choose Your Luxury Retreat</h1>
+            <p className="mt-2 text-gray-600">Select your preferred retreat, dates, and accommodation</p>
           </div>
 
           {error && (
@@ -204,7 +203,7 @@ export default function RetreatPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">Retreat</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">Select Retreat</label>
               {isLoadingRetreats ? (
                 <div className="flex items-center justify-center py-4">
                   <Spinner />
@@ -242,7 +241,7 @@ export default function RetreatPage() {
             {selectedRetreat && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
                   {isLoadingDates ? (
                     <div className="flex items-center justify-center py-4">
                       <Spinner />
@@ -274,7 +273,7 @@ export default function RetreatPage() {
                 {selectedDate && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">Room Type</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">Select Room Type</label>
                       {isLoadingRooms || rooms.length === 0 ? (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <p className="text-sm text-yellow-800">No room types available for this retreat.</p>
@@ -301,10 +300,10 @@ export default function RetreatPage() {
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-900">{room.name}</div>
                                 <div className="text-sm text-gray-600 mt-1">
-                                  Accommodates up to {room.maxGuests} guests
+                                  Accommodates up to {room.maxGuests} {room.maxGuests === 1 ? "guest" : "guests"}
                                 </div>
-                                <div className="mt-2 inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                  €{room.pricePerNight?.toFixed(2) || "0.00"} / {room.durationDays || 6}-day package
+                                <div className="mt-2 inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">
+                                  €{room.packagePrice?.toFixed(2) || "0.00"} - Complete Package
                                 </div>
                               </div>
                             </label>
@@ -338,7 +337,7 @@ export default function RetreatPage() {
                       type="text"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                      placeholder="Enter code"
+                      placeholder="Enter influencer code"
                       className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <Button
@@ -360,9 +359,12 @@ export default function RetreatPage() {
                 {selectedRoom && (
                   <div className="p-4 bg-gradient-to-r from-primary/10 to-emerald-100 rounded-lg border border-emerald-200">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-gray-900">Total Price:</span>
+                      <span className="text-lg font-semibold text-gray-900">Total Package Price:</span>
                       <span className="text-3xl font-bold text-primary">€{totalPrice.toFixed(2)}</span>
                     </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      Includes accommodation, training, meals, and all inclusions
+                    </p>
                   </div>
                 )}
 

@@ -151,8 +151,7 @@ model RoomType {
   package   Package? @relation(fields: [packageId], references: [id], onDelete: SetNull)
   name      String
   description String?
-  pricePerNight Float
-  durationDays Int    @default(6)
+  packagePrice Float  // Total price for the entire retreat (includes all inclusions)
   maxGuests Int
   amenities String[]
   bookings  Booking[]
@@ -215,7 +214,7 @@ model Payment {
   paidAt          DateTime?
   stripeReceiptUrl String?
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   @@index([bookingId])
   @@index([stripeSessionId])

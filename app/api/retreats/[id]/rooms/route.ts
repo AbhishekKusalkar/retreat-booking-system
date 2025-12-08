@@ -15,18 +15,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
           },
         },
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        maxGuests: true,
-        pricePerNight: true,
-        durationDays: true,
-        amenities: true,
-        package: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     })
 
     return NextResponse.json(roomTypes)
@@ -41,19 +29,20 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     const { id } = await context.params
     const body = await request.json()
 
-    const { name, description, pricePerNight, durationDays, maxGuests, amenities, packageId } = body
+    const { name, description, packagePrice, maxGuests, amenities, packageId } = body
 
-    if (!name || pricePerNight === undefined || maxGuests === undefined) {
-      return NextResponse.json({ error: "Missing required fields: name, pricePerNight, maxGuests" }, { status: 400 })
+    if (!name || packagePrice === undefined || maxGuests === undefined) {
+      return NextResponse.json({ error: "Missing required fields: name, packagePrice, maxGuests" }, { status: 400 })
     }
 
-    // Convert numeric fields
-    const price = Number(pricePerNight)
+    const price = Number(packagePrice)
     const guests = Number(maxGuests)
-    const days = Number(durationDays) || 6
 
-    if (isNaN(price) || isNaN(guests)) {
-      return NextResponse.json({ error: "pricePerNight and maxGuests must be numbers" }, { status: 400 })
+    if (isNaN(price) || isNaN(guests) || price <= 0) {
+      return NextResponse.json(
+        { error: "packagePrice and maxGuests must be valid numbers, price must be greater than 0" },
+        { status: 400 },
+      )
     }
 
     const room = await prisma.roomType.create({
@@ -61,11 +50,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         retreatId: id,
         name: String(name).trim(),
         description: description ? String(description).trim() : "",
-        pricePerNight: price,
-        durationDays: days,
+        packagePrice: price,
         maxGuests: guests,
         amenities: Array.isArray(amenities) ? amenities : [],
-        packageId: packageId || null, // Link to package if provided
+        packageId: packageId || null,
       },
       include: {
         package: {

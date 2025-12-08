@@ -20,8 +20,7 @@ export default function RoomManager() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    pricePerNight: "",
-    durationDays: "6",
+    packagePrice: "",
     maxGuests: "",
     packageId: "",
   })
@@ -78,8 +77,7 @@ export default function RoomManager() {
     const payload = {
       name: form.name,
       description: form.description,
-      pricePerNight: Number(form.pricePerNight),
-      durationDays: Number(form.durationDays),
+      packagePrice: Number(form.packagePrice),
       maxGuests: Number(form.maxGuests),
       amenities: [],
       packageId: form.packageId || null,
@@ -94,10 +92,9 @@ export default function RoomManager() {
 
       if (response.ok) {
         setShowForm(false)
-        setForm({ name: "", description: "", pricePerNight: "", durationDays: "6", maxGuests: "", packageId: "" })
+        setForm({ name: "", description: "", packagePrice: "", maxGuests: "", packageId: "" })
         alert("Room type created successfully!")
 
-        // Refresh rooms
         const res = await fetch("/api/retreats")
         const data = await res.json()
         const allRooms = data.flatMap((r: any) =>
@@ -122,7 +119,7 @@ export default function RoomManager() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Room Manager</h1>
-          <p className="text-muted-foreground mt-2">Manage retreat room types and nightly pricing</p>
+          <p className="text-muted-foreground mt-2">Manage retreat room types with fixed package pricing</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -133,7 +130,9 @@ export default function RoomManager() {
       <Card>
         <CardHeader>
           <CardTitle>Room Types</CardTitle>
-          <CardDescription>Configure available room options with pricing per night</CardDescription>
+          <CardDescription>
+            Configure available room options with complete package pricing (includes all inclusions)
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -144,10 +143,8 @@ export default function RoomManager() {
                 <TableRow>
                   <TableHead>Type</TableHead>
                   <TableHead>Retreat</TableHead>
-                  <TableHead>Package</TableHead>
                   <TableHead>Max Guests</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Price Per Night</TableHead>
+                  <TableHead>Package Price</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -156,10 +153,10 @@ export default function RoomManager() {
                   <TableRow key={room.id}>
                     <TableCell className="font-medium">{room.name}</TableCell>
                     <TableCell>{room.retreatName || "Unknown"}</TableCell>
-                    <TableCell>{room.package?.name || "None"}</TableCell>
                     <TableCell>{room.maxGuests}</TableCell>
-                    <TableCell>{room.durationDays} days</TableCell>
-                    <TableCell>€{room.pricePerNight?.toFixed(2) || "0.00"}</TableCell>
+                    <TableCell className="font-semibold text-primary">
+                      €{room.packagePrice?.toFixed(2) || "0.00"}
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm">
@@ -204,36 +201,29 @@ export default function RoomManager() {
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="e.g., Private Single Room, Twin Share Room"
+                placeholder="e.g., Private Single Room, Couple Room"
               />
 
               <Label>Description</Label>
               <Input
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Room details and amenities"
+                placeholder="Room details and features"
               />
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Price Per Night (€)</Label>
+                  <Label>Full Package Price (€)</Label>
                   <Input
                     type="number"
                     step="0.01"
-                    value={form.pricePerNight}
-                    onChange={(e) => setForm({ ...form, pricePerNight: e.target.value })}
-                    placeholder="150"
+                    value={form.packagePrice}
+                    onChange={(e) => setForm({ ...form, packagePrice: e.target.value })}
+                    placeholder="e.g., 9000 (for entire retreat)"
                   />
-                </div>
-
-                <div>
-                  <Label>Duration (Days)</Label>
-                  <Input
-                    type="number"
-                    value={form.durationDays}
-                    onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
-                    placeholder="6"
-                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Total price for the complete retreat including accommodation, training, meals, etc.
+                  </p>
                 </div>
 
                 <div>
@@ -242,25 +232,25 @@ export default function RoomManager() {
                     type="number"
                     value={form.maxGuests}
                     onChange={(e) => setForm({ ...form, maxGuests: e.target.value })}
-                    placeholder="4"
+                    placeholder="1 or 2"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <Label>Link to Package (Optional)</Label>
-                  <select
-                    className="border p-2 w-full rounded"
-                    value={form.packageId}
-                    onChange={(e) => setForm({ ...form, packageId: e.target.value })}
-                  >
-                    <option value="">No package</option>
-                    {packages.map((pkg: any) => (
-                      <option key={pkg.id} value={pkg.id}>
-                        {pkg.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <Label>Link to Package (Optional)</Label>
+                <select
+                  className="border p-2 w-full rounded"
+                  value={form.packageId}
+                  onChange={(e) => setForm({ ...form, packageId: e.target.value })}
+                >
+                  <option value="">No package</option>
+                  {packages.map((pkg: any) => (
+                    <option key={pkg.id} value={pkg.id}>
+                      {pkg.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </>
           )}

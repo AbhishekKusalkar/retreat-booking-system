@@ -35,6 +35,19 @@ You'll need accounts and API keys from the following services:
 3. Set password: `wellness_password_dev` (for local development)
 4. Remember the PostgreSQL port (default: 5432)
 
+**For macOS:**
+\`\`\`bash
+# Using Homebrew
+brew install postgresql@15
+brew services start postgresql@15
+\`\`\`
+
+**For Linux (Ubuntu/Debian):**
+\`\`\`bash
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
+sudo systemctl start postgresql
+\`\`\`
 
 ### Step 2.2: Create Database & User
 
