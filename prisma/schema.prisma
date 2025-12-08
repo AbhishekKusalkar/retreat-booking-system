@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  VIEWER
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Should be hashed
+  role      UserRole @default(VIEWER)
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Teacher {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  contactNumber String
+  bio         String?
+  specializations String[]
+  isActive    Boolean  @default(true)
+  retreatAssignments TeacherRetreatAssignment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+}
+
+model TeacherRetreatAssignment {
+  id          String   @id @default(cuid())
+  teacherId   String
+  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  retreatId   String
+  retreat     Retreat  @relation(fields: [retreatId], references: [id], onDelete: Cascade)
+  retreatDateId String
+  retreatDate RetreatDate @relation(fields: [retreatDateId], references: [id], onDelete: Cascade)
+  role        String   @default("Instructor") // e.g., "Instructor", "Facilitator", "Guest Speaker"
+  notificationSent Boolean @default(false)
+  notificationSentAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([teacherId, retreatDateId])
+  @@index([teacherId])
+  @@index([retreatId])
+  @@index([retreatDateId])
+}
+
+model Influencer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  bio       String?
+  imageUrl  String?
+  promoCodes PromoCode[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PromoCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  discountPercentage Int @default(10)
+  isActive    Boolean  @default(true)
+  influencerId String
+  influencer  Influencer @relation(fields: [influencerId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([influencerId])
+}
+
+model Retreat {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  location      String
+  basePrice     Float
+  images        String[]
+  amenities     String[]
+  maxCapacity   Int
+  retreatDates  RetreatDate[]
+  roomTypes     RoomType[]
+  bookings      Booking[]
+  teacherAssignments TeacherRetreatAssignment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model RetreatDate {
+  id        String   @id @default(cuid())
+  retreatId String
+  retreat   Retreat  @relation(fields: [retreatId], references: [id], onDelete: Cascade)
+  startDate DateTime
+  endDate   DateTime
+  capacity  Int
+  booked    Int      @default(0)
+  bookings  Booking[]
+  teacherAssignments TeacherRetreatAssignment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([retreatId])
+}
+
+model RoomType {
+  id        String   @id @default(cuid())
+  retreatId String
+  retreat   Retreat  @relation(fields: [retreatId], references: [id], onDelete: Cascade)
+  name      String
+  description String?
+  packagePrice Float
+  durationDays Int @default(6)
+  maxGuests Int
+  amenities String[]
+  bookings  Booking[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([retreatId])
+}
+
+model Guest {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String
+  bookings  Booking[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Booking {
+  id             String   @id @default(cuid())
+  guestId        String
+  guest          Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  retreatId      String
+  retreat        Retreat  @relation(fields: [retreatId], references: [id], onDelete: Cascade)
+  retreatDateId  String
+  retreatDate    RetreatDate @relation(fields: [retreatDateId], references: [id], onDelete: Cascade)
+  roomTypeId     String
+  roomType       RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  numberOfGuests Int
+  promoCodeId    String?
+  promoCode      PromoCode? @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
+  status         BookingStatus @default(PENDING)
+  totalPrice     Float
+  payments       Payment[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([guestId])
+  @@index([retreatId])
+  @@index([retreatDateId])
+  @@index([promoCodeId])
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  bookingId       String
+  booking         Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  stripeSessionId String   @unique
+  amount          Float
+  paymentType     PaymentType @default(DEPOSIT)
+  status          PaymentStatus @default(PENDING)
+  paidAt          DateTime?
+  stripeReceiptUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([bookingId])
+  @@index([stripeSessionId])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentType {
+  DEPOSIT
+  FULL
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
