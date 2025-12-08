@@ -12,17 +12,18 @@ import { Input } from "@/components/ui/input"
 export default function RoomManager() {
   const [rooms, setRooms] = useState<any[]>([])
   const [retreats, setRetreats] = useState<any[]>([])
+  const [packages, setPackages] = useState<any[]>([])
   const [selectedRetreat, setSelectedRetreat] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Room form fields
   const [form, setForm] = useState({
     name: "",
     description: "",
-    packagePrice: "",
+    pricePerNight: "",
     durationDays: "6",
     maxGuests: "",
+    packageId: "",
   })
 
   useEffect(() => {
@@ -32,7 +33,12 @@ export default function RoomManager() {
         const data = await response.json()
 
         setRetreats(data)
-        const allRooms = data.flatMap((r: any) => r.roomTypes || [])
+        const allRooms = data.flatMap((r: any) =>
+          (r.roomTypes || []).map((room: any) => ({
+            ...room,
+            retreatName: r.name,
+          })),
+        )
         setRooms(allRooms)
       } catch (error) {
         console.error("Failed to fetch rooms:", error)
@@ -44,7 +50,25 @@ export default function RoomManager() {
     fetchRooms()
   }, [])
 
-  // Create Room Handler
+  useEffect(() => {
+    if (!selectedRetreat) {
+      setPackages([])
+      return
+    }
+
+    const fetchPackages = async () => {
+      try {
+        const response = await fetch(`/api/retreats/${selectedRetreat}/packages`)
+        const data = await response.json()
+        setPackages(data)
+      } catch (error) {
+        console.error("Failed to fetch packages:", error)
+      }
+    }
+
+    fetchPackages()
+  }, [selectedRetreat])
+
   async function handleCreateRoom() {
     if (!selectedRetreat) {
       alert("Please select a retreat first.")
@@ -54,29 +78,42 @@ export default function RoomManager() {
     const payload = {
       name: form.name,
       description: form.description,
-      packagePrice: Number(form.packagePrice),
+      pricePerNight: Number(form.pricePerNight),
       durationDays: Number(form.durationDays),
       maxGuests: Number(form.maxGuests),
       amenities: [],
+      packageId: form.packageId || null,
     }
 
-    const response = await fetch(`/api/retreats/${selectedRetreat}/rooms`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
+    try {
+      const response = await fetch(`/api/retreats/${selectedRetreat}/rooms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
 
-    if (response.ok) {
-      setShowForm(false)
-      setForm({ name: "", description: "", packagePrice: "", durationDays: "6", maxGuests: "" })
+      if (response.ok) {
+        setShowForm(false)
+        setForm({ name: "", description: "", pricePerNight: "", durationDays: "6", maxGuests: "", packageId: "" })
+        alert("Room type created successfully!")
 
-      // Refresh rooms
-      const res = await fetch("/api/retreats")
-      const data = await res.json()
-      const allRooms = data.flatMap((r: any) => r.roomTypes || [])
-      setRooms(allRooms)
-    } else {
-      alert("Failed to create room")
+        // Refresh rooms
+        const res = await fetch("/api/retreats")
+        const data = await res.json()
+        const allRooms = data.flatMap((r: any) =>
+          (r.roomTypes || []).map((room: any) => ({
+            ...room,
+            retreatName: r.name,
+          })),
+        )
+        setRooms(allRooms)
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to create room: ${errorData.error}`)
+      }
+    } catch (error) {
+      console.error("Error creating room:", error)
+      alert("Error creating room. Please try again.")
     }
   }
 
@@ -85,7 +122,7 @@ export default function RoomManager() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Room Manager</h1>
-          <p className="text-muted-foreground mt-2">Manage retreat room types and full package pricing</p>
+          <p className="text-muted-foreground mt-2">Manage retreat room types and nightly pricing</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -96,7 +133,7 @@ export default function RoomManager() {
       <Card>
         <CardHeader>
           <CardTitle>Room Types</CardTitle>
-          <CardDescription>Configure available room options with full package pricing</CardDescription>
+          <CardDescription>Configure available room options with pricing per night</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -107,9 +144,10 @@ export default function RoomManager() {
                 <TableRow>
                   <TableHead>Type</TableHead>
                   <TableHead>Retreat</TableHead>
+                  <TableHead>Package</TableHead>
                   <TableHead>Max Guests</TableHead>
-                  <TableHead>Package Price</TableHead>
                   <TableHead>Duration</TableHead>
+                  <TableHead>Price Per Night</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -117,10 +155,11 @@ export default function RoomManager() {
                 {rooms.map((room) => (
                   <TableRow key={room.id}>
                     <TableCell className="font-medium">{room.name}</TableCell>
-                    <TableCell>{room.retreat?.name || "Unknown"}</TableCell>
+                    <TableCell>{room.retreatName || "Unknown"}</TableCell>
+                    <TableCell>{room.package?.name || "None"}</TableCell>
                     <TableCell>{room.maxGuests}</TableCell>
-                    <TableCell>€{room.packagePrice?.toFixed(2) || "0.00"}</TableCell>
-                    <TableCell>{room.durationDays || 6} days</TableCell>
+                    <TableCell>{room.durationDays} days</TableCell>
+                    <TableCell>€{room.pricePerNight?.toFixed(2) || "0.00"}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm">
@@ -139,14 +178,12 @@ export default function RoomManager() {
         </CardContent>
       </Card>
 
-      {/* MODAL FOR CREATE ROOM */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Create Room Type</DialogTitle>
           </DialogHeader>
 
-          {/* Retreat Selection */}
           <Label>Select Retreat</Label>
           <select
             className="border p-2 w-full rounded"
@@ -161,7 +198,6 @@ export default function RoomManager() {
             ))}
           </select>
 
-          {/* Only show room fields after selecting retreat */}
           {selectedRetreat && (
             <>
               <Label>Room Name</Label>
@@ -178,29 +214,54 @@ export default function RoomManager() {
                 placeholder="Room details and amenities"
               />
 
-              <Label>Full Package Price (€)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={form.packagePrice}
-                onChange={(e) => setForm({ ...form, packagePrice: e.target.value })}
-                placeholder="e.g., 1200 for 6-day package"
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Price Per Night (€)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={form.pricePerNight}
+                    onChange={(e) => setForm({ ...form, pricePerNight: e.target.value })}
+                    placeholder="150"
+                  />
+                </div>
 
-              <Label>Package Duration (Days)</Label>
-              <Input
-                type="number"
-                value={form.durationDays}
-                onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
-                placeholder="e.g., 6, 10"
-              />
+                <div>
+                  <Label>Duration (Days)</Label>
+                  <Input
+                    type="number"
+                    value={form.durationDays}
+                    onChange={(e) => setForm({ ...form, durationDays: e.target.value })}
+                    placeholder="6"
+                  />
+                </div>
 
-              <Label>Max Guests</Label>
-              <Input
-                type="number"
-                value={form.maxGuests}
-                onChange={(e) => setForm({ ...form, maxGuests: e.target.value })}
-              />
+                <div>
+                  <Label>Max Guests</Label>
+                  <Input
+                    type="number"
+                    value={form.maxGuests}
+                    onChange={(e) => setForm({ ...form, maxGuests: e.target.value })}
+                    placeholder="4"
+                  />
+                </div>
+
+                <div>
+                  <Label>Link to Package (Optional)</Label>
+                  <select
+                    className="border p-2 w-full rounded"
+                    value={form.packageId}
+                    onChange={(e) => setForm({ ...form, packageId: e.target.value })}
+                  >
+                    <option value="">No package</option>
+                    {packages.map((pkg: any) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </>
           )}
 

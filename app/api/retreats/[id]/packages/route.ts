@@ -5,34 +5,23 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   try {
     const { id } = await context.params
 
-    const roomTypes = await prisma.roomType.findMany({
-      where: { retreatId: id },
-      include: {
-        package: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+    const packages = await prisma.package.findMany({
+      where: {
+        retreatId: id,
+        isActive: true,
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        maxGuests: true,
-        pricePerNight: true,
-        durationDays: true,
-        amenities: true,
-        package: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        roomTypes: true,
+      },
+      orderBy: {
+        displayOrder: "asc",
       },
     })
 
-    return NextResponse.json(roomTypes)
+    return NextResponse.json(packages)
   } catch (error) {
-    console.error("[v0] Error fetching room types:", error)
-    return NextResponse.json({ error: "Failed to fetch room types" }, { status: 500 })
+    console.error("[v0] Error fetching packages:", error)
+    return NextResponse.json({ error: "Failed to fetch packages" }, { status: 500 })
   }
 }
 
@@ -41,22 +30,23 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     const { id } = await context.params
     const body = await request.json()
 
-    const { name, description, pricePerNight, durationDays, maxGuests, amenities, packageId } = body
+    const { name, description, pricePerNight, durationDays, maxGuests, amenities, inclusions, features, displayOrder } =
+      body
 
     if (!name || pricePerNight === undefined || maxGuests === undefined) {
       return NextResponse.json({ error: "Missing required fields: name, pricePerNight, maxGuests" }, { status: 400 })
     }
 
-    // Convert numeric fields
     const price = Number(pricePerNight)
     const guests = Number(maxGuests)
     const days = Number(durationDays) || 6
+    const order = Number(displayOrder) || 0
 
     if (isNaN(price) || isNaN(guests)) {
       return NextResponse.json({ error: "pricePerNight and maxGuests must be numbers" }, { status: 400 })
     }
 
-    const room = await prisma.roomType.create({
+    const packageData = await prisma.package.create({
       data: {
         retreatId: id,
         name: String(name).trim(),
@@ -65,23 +55,20 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         durationDays: days,
         maxGuests: guests,
         amenities: Array.isArray(amenities) ? amenities : [],
-        packageId: packageId || null, // Link to package if provided
+        inclusions: Array.isArray(inclusions) ? inclusions : [],
+        features: Array.isArray(features) ? features : [],
+        displayOrder: order,
       },
       include: {
-        package: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        roomTypes: true,
       },
     })
 
-    return NextResponse.json(room, { status: 201 })
+    return NextResponse.json(packageData, { status: 201 })
   } catch (error) {
-    console.error("[v0] Error creating room type:", error instanceof Error ? error.message : error)
+    console.error("[v0] Error creating package:", error instanceof Error ? error.message : error)
     return NextResponse.json(
-      { error: "Failed to create room type", details: error instanceof Error ? error.message : "Unknown error" },
+      { error: "Failed to create package", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 },
     )
   }

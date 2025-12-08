@@ -28,7 +28,7 @@ interface RoomType {
   id: string
   name: string
   maxGuests: number
-  packagePrice: number
+  pricePerNight: number
   durationDays: number
 }
 
@@ -86,7 +86,6 @@ export default function RetreatPage() {
         setNumberOfGuests("")
         setDiscount(0)
 
-        // Set the selected retreat data to get location
         const retreat = retreats.find((r) => r.id === selectedRetreat)
         if (retreat) {
           setSelectedRetreatData(retreat)
@@ -108,12 +107,10 @@ export default function RetreatPage() {
     fetchDates()
   }, [selectedRetreat, retreats])
 
-  // This simplifies the flow and shows rooms immediately after retreat selection
-
   useEffect(() => {
     if (selectedRetreatData && selectedRoom && discount >= 0) {
       const selectedRoomData = rooms.find((r) => r.id === selectedRoom)
-      let price = selectedRoomData?.packagePrice || selectedRetreatData.basePrice
+      let price = selectedRoomData?.pricePerNight || selectedRetreatData.basePrice
       if (discount > 0) {
         price = price * (1 - discount / 100)
       }
@@ -307,7 +304,7 @@ export default function RetreatPage() {
                                   Accommodates up to {room.maxGuests} guests
                                 </div>
                                 <div className="mt-2 inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                  €{room.packagePrice?.toFixed(2) || "0.00"} / {room.durationDays || 6}-day package
+                                  €{room.pricePerNight?.toFixed(2) || "0.00"} / {room.durationDays || 6}-day package
                                 </div>
                               </div>
                             </label>

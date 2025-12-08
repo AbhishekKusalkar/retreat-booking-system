@@ -132,13 +132,13 @@ export default function PaymentPage() {
 
               <div className="flex justify-between text-base">
                 <span className="text-gray-600">Total Package Price</span>
-                <span className="font-medium text-foreground">${summary.subtotal.toFixed(2)}</span>
+                <span className="font-medium text-foreground">€{summary.subtotal.toFixed(2)}</span>
               </div>
 
               {summary.discount > 0 && (
                 <div className="flex justify-between text-secondary font-medium">
                   <span>Discount ({summary.discountPercent}%)</span>
-                  <span>-${summary.discountAmount.toFixed(2)}</span>
+                  <span>-€{summary.discountAmount.toFixed(2)}</span>
                 </div>
               )}
 
@@ -146,7 +146,7 @@ export default function PaymentPage() {
 
               <div className="flex justify-between text-lg font-bold bg-gradient-to-r from-primary/5 to-transparent p-3 rounded-lg">
                 <span className="text-foreground">Total</span>
-                <span className="text-primary">${summary.total.toFixed(2)}</span>
+                <span className="text-primary">€{summary.total.toFixed(2)}</span>
               </div>
             </div>
           </div>

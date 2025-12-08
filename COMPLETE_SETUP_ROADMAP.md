@@ -35,19 +35,6 @@ You'll need accounts and API keys from the following services:
 3. Set password: `wellness_password_dev` (for local development)
 4. Remember the PostgreSQL port (default: 5432)
 
-**For macOS:**
-\`\`\`bash
-# Using Homebrew
-brew install postgresql@15
-brew services start postgresql@15
-\`\`\`
-
-**For Linux (Ubuntu/Debian):**
-\`\`\`bash
-sudo apt-get update
-sudo apt-get install postgresql postgresql-contrib
-sudo systemctl start postgresql
-\`\`\`
 
 ### Step 2.2: Create Database & User
 
@@ -95,8 +82,8 @@ psql -U wellness_user -d wellness_retreats -h localhost -p 5432
 1. Log in to Stripe Dashboard
 2. Go to: Developers → API Keys
 3. Copy both keys in **Test Mode**:
-   - **Publishable Key** (starts with `pk_test_`)
-   - **Secret Key** (starts with `sk_test_`)
+   - **Publishable Key** (starts with `pk_test_`)(pk_test_51SaVxHJY5DcZQKcwNZ8Lt6xHmkjA8BWTQocawEHwF8jXNeZBq3zGpXbOlYQ1dVsGjHzUWpIPoRcs3F1NssCylW3P00tZkCBd8e)
+   - **Secret Key** (starts with `sk_test_`)(sk_test_51SaVxHJY5DcZQKcwxt7CX5mOZvjJj168uEvUq4mE4QjpeBUfJMb2LtjaIPdKnw3CVhgahwP5wUvQGbnDqDSp55QH00A7HaqHrF)
 
 ### Step 3.3: Create Webhook Endpoint (Optional but Recommended)
 1. In Dashboard: Developers → Webhooks
@@ -124,6 +111,7 @@ stripe listen --forward-to localhost:3000/api/payment/webhook
 1. Go to https://resend.com
 2. Sign up with email
 3. Verify email address
+(re_cbzdoHA6_GULDArswxyrBGswREP1do6TY)
 
 ### Step 4.2: Get API Key
 1. Go to Dashboard

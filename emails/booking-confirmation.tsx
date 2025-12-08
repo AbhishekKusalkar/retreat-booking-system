@@ -91,13 +91,13 @@ export const BookingConfirmationEmail = ({
                 </Row>
                 <Row>
                   <Text style={label}>Discount</Text>
-                  <Text style={value}>-${discount?.toFixed(2)}</Text>
+                  <Text style={value}>-€{discount?.toFixed(2)}</Text>
                 </Row>
               </>
             )}
             <Hr style={hr} />
             <Row>
-              <Text style={{ ...value, ...totalPrice_ }}>Total Price: ${totalPrice.toFixed(2)}</Text>
+              <Text style={{ ...value, ...totalPrice_ }}>Total Price: €{totalPrice.toFixed(2)}</Text>
             </Row>
           </Section>
 

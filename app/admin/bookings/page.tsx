@@ -127,7 +127,7 @@ export default function BookingList() {
                       <TableCell>{new Date(booking.retreatDate.date).toLocaleDateString()}</TableCell>
                       <TableCell>{booking.roomType.name}</TableCell>
                       <TableCell>{booking.numberOfGuests}</TableCell>
-                      <TableCell>${booking.totalPrice}</TableCell>
+                      <TableCell className="font-medium">€{booking.totalPrice}</TableCell>
                       <TableCell>
                         <Badge className={statusColors[booking.status]}>{booking.status}</Badge>
                       </TableCell>

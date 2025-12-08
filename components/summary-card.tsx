@@ -63,9 +63,9 @@ export function SummaryCard({
         <div className="border-t border-border pt-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-600">
-              ${pricePerNight} × {numberOfNights} nights
+              €{pricePerNight} × {numberOfNights} nights
             </span>
-            <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>
+            <span className="font-medium text-foreground">€{subtotal.toFixed(2)}</span>
           </div>
           {discount && (
             <div className="flex justify-between text-secondary font-medium">
@@ -75,18 +75,18 @@ export function SummaryCard({
                   <Badge className="ml-2 bg-secondary/10 text-secondary border-secondary/30">{promoCode}</Badge>
                 )}
               </span>
-              <span>-${discount.toFixed(2)}</span>
+              <span>-€{discount.toFixed(2)}</span>
             </div>
           )}
           {tax && (
             <div className="flex justify-between">
               <span className="text-gray-600">Tax</span>
-              <span className="font-medium text-foreground">${tax.toFixed(2)}</span>
+              <span className="font-medium text-foreground">€{tax.toFixed(2)}</span>
             </div>
           )}
           <div className="border-t border-border pt-2 flex justify-between font-bold text-lg bg-gradient-to-r from-primary/5 to-transparent p-3 rounded-lg">
             <span className="text-foreground">Total</span>
-            <span className="text-primary">${total.toFixed(2)}</span>
+            <span className="text-primary">€{total.toFixed(2)}</span>
           </div>
         </div>
       </CardContent>

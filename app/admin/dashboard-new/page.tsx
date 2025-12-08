@@ -86,7 +86,7 @@ export default function AdvancedDashboard() {
         {[
           { label: "Total Bookings", value: stats.totalBookings },
           { label: "Active Retreats", value: stats.activeRetreats },
-          { label: "Revenue", value: `$${stats.totalRevenue.toLocaleString()}` },
+          { label: "Revenue", value: `€${stats.totalRevenue.toLocaleString()}` },
           { label: "Teachers", value: stats.activeTeachers },
           { label: "Pending Notifications", value: stats.pendingNotifications },
         ].map((metric, i) => (
